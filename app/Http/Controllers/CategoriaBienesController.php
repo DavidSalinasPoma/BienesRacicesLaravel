@@ -64,7 +64,8 @@ class CategoriaBienesController extends Controller
         $params = json_decode($json); // objeto
         $paramsArray = json_decode($json, true); // Array
 
-
+        // var_dump($paramsArray);
+        // die();
         // Validamos si esta vacio
         if (!empty($params) && !empty($paramsArray)) {
             // Limpiar datos de espacios en blanco al principio y el final
@@ -94,15 +95,18 @@ class CategoriaBienesController extends Controller
 
                 // Si la validacion pasa correctamente  
                 // Crear el objeto usuario para guardar en la base de datos
-                $categoria = new CategoriaBienes();
-                $categoria->eventoCategoria = $paramsArray['nombre_categoria'];
-                $categoria->usuarios_id = $user->sub;
+                $categorias = new CategoriaBienes();
+                $categorias->nombre_categoria = $paramsArray['nombre_categoria'];
+                $categorias->usuarios_id = $user->sub;
                 // 7.-GUARDAR EN LA BASE DE DATOS
-                $categoria->save();
+                // var_dump($categoria);
+                // die();
+                $categorias->save();
                 $data = array(
                     'status' => 'success',
                     'code' => 200,
                     'message' => 'Nueva categoria creada correctamente',
+                    'categoria' => $categorias,
                 );
             }
         } else {
@@ -128,7 +132,7 @@ class CategoriaBienesController extends Controller
             // 2.- Validar los datos.
             // 2.-VALIDAR DATOS
             $validate = Validator::make($paramsArray, [
-                'eventoCategoria' => 'required',
+                'nombre_categoria' => 'required',
             ]);
             // Comprobar si los datos son validos
             if ($validate->fails()) { // en caso si los datos fallan la validacion

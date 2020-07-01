@@ -6,6 +6,7 @@ use App\User;
 use App\Perfil;
 use Exception;
 use App\Helpers\JwtAuth;
+use App\Imagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -14,11 +15,21 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    //Creamos un metodo de prueba el parmetro recibe la informacion que le llega desde http
-    public function pruebas(Request $request)
+    //Creamos un metodo de para sacar el primer login de usuario
+    public function login(Request $request)
     {
-        return 'Pruebas de User-Controller';
+        $jwtauth = new JwtAuth();
+        $userpass = 'admin';
+        $password = 'admin';
+        $pwd = hash('sha256', $password);
+
+        // Utilizamos el metodo singup
+        var_dump($pwd);
+        die();
+        return $jwtauth->singup($userpass, $pwd);
     }
+
+
 
     // Userpas y password que manda angular desde la pagina de logueo.
     public function loginAngular(Request $request)
@@ -118,24 +129,23 @@ class UserController extends Controller
         // var_dump($params->nom_usuario); // Devuelve un dato
 
         $paramsArray = json_decode($json, true); // nos devuelve un array
-        // var_dump($paramsArray['remember_token']);
+        // var_dump($paramsArray);
         // die();
 
 
 
         // Validar si esta vacio 
         if (!empty($params) && !empty($paramsArray)) {
+
             // Limpiar datos de espacios en blanco al principio y el final
-            $paramsArray = array_map('trim', $paramsArray);
+            // $paramsArray = array_map('trim', $paramsArray);
 
             // 2.-Validar datos
             $validate = Validator::make($paramsArray, [
                 // 4.-Comprobar si el usuario ya existe duplicado
                 // 'carnet' => 'required|unique:usuarios1',
                 'carnet' => 'required',
-                'nombres' => 'required|alpha_spaces',
-                'apellidos' => 'required|alpha_spaces',
-                'imagen' => 'required',
+                'nombre_completo' => 'required|alpha_spaces',
                 'email' => 'required|email',
                 'userpass' => 'required',
                 'password' => 'required',
@@ -163,9 +173,7 @@ class UserController extends Controller
                 // Crear el objeto usuario para guardar en la base de datos
                 $user = new User();
                 $user->carnet = $paramsArray['carnet'];
-                $user->nombres = $paramsArray['nombres'];
-                $user->apellidos = $paramsArray['apellidos'];
-                $user->imagen = $paramsArray['imagen'];
+                $user->nombre_completo = $paramsArray['nombre_completo'];
                 $user->email = $paramsArray['email'];
                 $user->userpass = $paramsArray['userpass'];
                 $user->password = $pwd;
@@ -176,17 +184,25 @@ class UserController extends Controller
                     // Guardar en la base de datos
                     // 5.-Crear el usuario
                     $user->save();
+
+                    // Ultimo usuario registrado
+                    // $data = User::latest('id')->first();
+                    $idUser = $user->id;
+
+                    $this->uploadImagen($idUser, $paramsArray['imagen']);
+
                     $data = array(
                         'status' => 'success',
                         'code' => 200,
                         'message' => 'El usuario se ha creado correctamente',
-                        'usuario' => $user
+                        'usuario' => $user,
+                        'id' => $idUser
                     );
                 } catch (Exception $e) {
                     $data = array(
                         'status' => 'Error',
                         'code' => 404,
-                        'message' => 'Ya existe un registro con el Nro. de carnet.'
+                        'message' => 'Ya existe un registro con el Nro. de carnet. o nombre usuario'
                     );
                 }
             }
@@ -261,7 +277,7 @@ class UserController extends Controller
                 unset($paramsArray['remember_token']);
 
                 // 3.- Cifrar la PASSWORD.
-                // $paramsArray['password'] = hash('sha256', $paramsArray['password']); // para verificar que las contraseña a consultar sean iguales.
+                $paramsArray['password'] = hash('sha256', $paramsArray['password']);
                 try {
                     // 5.- Actualizar los datos en la base de datos.
                     $user_update = User::where('id', $idUsuario)->update($paramsArray);
@@ -279,7 +295,7 @@ class UserController extends Controller
                     $data = array(
                         'status' => 'error',
                         'code' => 400,
-                        'message' => 'El numero de carnet ya esta registrado',
+                        'message' => 'El numero de carnet ó usuario ya esta registrado',
                         // 'error' => $e
                     );
                 }
@@ -316,44 +332,53 @@ class UserController extends Controller
     }
 
     // Metodo para subir una imagen y sacar el nombre a el disco duro de laravel desde Angular
-    public function uploadImagen(Request $request)
+    public function uploadImagen($idUser, $file)
     {
         // Para evitar utlizar el mismo codigo para la autenticacion se debe utilizar un middleware
         // php artisan make:middleware 
         // es un metodo que se ejecuta antes del controlador es como un filtro.
 
         // 1.- Recoger la imagen desde angular
-        $imagen = $request->file('file0'); //Segun angular
+        // $imagen = $request->file('file0'); //Segun angular
+        $imagen = $file->file('imagen'); //Segun angular
 
         // Validar que solo lleguen imagenes
-        $validate = Validator::make($request->all(), [
-            // Archivos que se va a permitir
-            'file0' => 'required|image|mimes:jpg,jpeg,png,gif,JPG'
-        ]);
+        // $validate = Validator::make($request->all(), [
+        //     // Archivos que se va a permitir
+        //     'file0' => 'required|image|mimes:jpg,jpeg,png,gif,JPG'
+        // ]);
 
         // 2.- Guardar la imagen
         // comprobar si la imagen llega o falla la validacion.
-        if (!$imagen || $validate->fails()) {
+        // if (!$imagen || $validate->fails()) {
 
-            $data = array(
-                'code' => 400,
-                'status' => 'error',
-                'message' => 'Error al subir imagen',
-                'imagen' => $imagen
-            );
-        } else {
+        //     $data = array(
+        //         'code' => 400,
+        //         'status' => 'error',
+        //         'message' => 'Error al subir imagen',
+        //         'imagen' => $imagen
+        //     );
+        // } else {
 
-            $imageName = time() . $imagen->getClientOriginalName(); // saca el nombre del la imagen.
-            // crear carpeta users luego conf/filesystems.php
-            Storage::disk('users')->put($imageName, File::get($imagen)); // Guarda la imagen en el disco laravel
+        # code...
+        $imageName = time() . $imagen->getClientOriginalName(); // saca el nombre del la imagen.
+        // crear carpeta users luego conf/filesystems.php
+        Storage::disk('propiedades')->put($imageName, File::get($imagen)); // Guarda la imagen en el disco laravel
+        $nameImagen[] = $imageName;
+        // Guardar la relacion en la base de datos
 
-            // 3.- Delvolver el resultado.
-            $data = array(
-                'code' => 200,
-                'status' => 'success',
-                'image' => $imageName
-            );
-        }
+        $guardaImagen =  new Imagen();
+        $guardaImagen->imagen = $imageName;
+        $guardaImagen->usuarios_id = $idUser;
+        $guardaImagen->save();
+
+        // 3.- Delvolver el resultado.
+        $data = array(
+            'code' => 200,
+            'status' => 'success',
+            'image' => $imageName
+        );
+        // }
         return response()->json($data, $data['code']); // devuelve un objeto json.
     }
 
@@ -393,7 +418,7 @@ class UserController extends Controller
                 $data = array(
                     'code' => 400,
                     'status' => 'error',
-                    'message' => 'La imagen no existe dsp'
+                    'message' => 'La imagen no existe para ser eliminado'
                 );
             }
             return response()->json($data, $data['code']); //Devuelve la imagen encontrada

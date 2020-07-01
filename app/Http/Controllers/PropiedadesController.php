@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Propiedades;
 use Exception;
 use App\Helpers\JwtAuth;
+use App\Imagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -244,7 +245,7 @@ class PropiedadesController extends Controller
 
 
     // Metodo para subir una imagen y sacar el nombre a el disco duro de laravel desde Angular
-    public function uploadImagen(Request $request)
+    public function uploadImagen(Request $request, $id)
     {
         // Para evitar utlizar el mismo codigo para la autenticacion se debe utilizar un middleware
         // php artisan make:middleware 
@@ -252,11 +253,13 @@ class PropiedadesController extends Controller
 
         // 1.- Recoger la imagen desde angular
         $imagen = $request->file('file0'); //Segun angular
+        // dd($imagen);
+        // die();
 
         // Validar que solo lleguen imagenes
         $validate = Validator::make($request->all(), [
             // Archivos que se va a permitir
-            'file0' => 'required|image|mimes:jpg,jpeg,png,gif,JPG'
+            'file0.*' => 'required|image|mimes:jpg,jpeg,png,gif,JPG'
         ]);
 
         // 2.- Guardar la imagen
@@ -271,15 +274,25 @@ class PropiedadesController extends Controller
             );
         } else {
 
-            $imageName = time() . $imagen->getClientOriginalName(); // saca el nombre del la imagen.
-            // crear carpeta users luego conf/filesystems.php
-            Storage::disk('propiedades')->put($imageName, File::get($imagen)); // Guarda la imagen en el disco laravel
+            foreach ($imagen as $img) {
+                # code...
+                $imageName = time() . $img->getClientOriginalName(); // saca el nombre del la imagen.
+                // crear carpeta users luego conf/filesystems.php
+                Storage::disk('propiedades')->put($imageName, File::get($img)); // Guarda la imagen en el disco laravel
+                $nameImagen[] = $imageName;
+                // Guardar la relacion en la base de datos
+
+                $guardaImagen =  new Imagen();
+                $guardaImagen->$imageName;
+                $guardaImagen->$id;
+                $guardaImagen->save();
+            }
 
             // 3.- Delvolver el resultado.
             $data = array(
                 'code' => 200,
                 'status' => 'success',
-                'image' => $imageName
+                'image' => $nameImagen
             );
         }
         return response()->json($data, $data['code']); // devuelve un objeto json.

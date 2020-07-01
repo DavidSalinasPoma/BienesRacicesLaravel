@@ -13,38 +13,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/login', function () {
+//     return view('welcome');
+// });
 
 // Ejemplo de rutas
-Route::get('/api/pruebas', 'UserController@pruebas');
-
-
-/*************RUTAS PARA PERFIL********/
-// Utilizando rutas automaticas 
-Route::resource('/api/perfil', 'PerfilController');
-
-/*************RUTAS PARA LOS REGALOS********/
-// Utilizando rutas automaticas
-Route::resource('/api/regalos', 'RegalosController');
-
-/*************RUTAS PARA LOS REGISTRADOS********/
-// Utilizando rutas automaticas
-Route::resource('/api/registrados', 'RegistradosController');
-// para sacar datos de las conferencias por dia (pruebas con postMan en el body)
-Route::get('/api/registrados/dias/{pases}', 'RegistradosController@pasesDia');
+// Route::get('/api/loginPrueba', 'UserController@login');
 
 /*************RUTAS PARA INVITADOS********/
 // Utilizando rutas automaticas 
-Route::resource('/api/invitados', 'InvitadosController');
-Route::post('/api/invitados/upload', 'InvitadosController@uploadImagen');
-Route::get('/api/invitados/avatar/{filename}', 'InvitadosController@getImagen');
-Route::get('/api/invitados/imagen/{filename}', 'InvitadosController@destroyImagen');
+// Route::resource('/api/invitados', 'InvitadosController');
+// Route::post('/api/invitados/upload', 'InvitadosController@uploadImagen');
+// Route::get('/api/invitados/avatar/{filename}', 'InvitadosController@getImagen');
+// Route::get('/api/invitados/imagen/{filename}', 'InvitadosController@destroyImagen');
 
-/*************RUTAS PARA EVENTOS********/
-// Utilizando rutas automaticas 
-Route::resource('/api/eventos', 'EventosController');
 
 // ***********************************************************************************/
 
@@ -62,7 +44,6 @@ Route::post('/api/user/upload', 'UserController@uploadImagen')->middleware(\App\
 Route::put('/api/user/update/{idUsuario}', 'UserController@updateAngular');
 
 // GET
-Route::get('/api/user/imagen/{nameImag}', 'UserController@destroyImagen');
 Route::get('/api/user/avatar/{filename}', 'UserController@getImagen');
 Route::get('/api/user/showUsuario/{id}', 'UserController@showUsuario');
 Route::get('/api/user/indexUsuario', 'UserController@indexUsuario');
@@ -70,6 +51,7 @@ Route::get('/api/user/indexUsuario', 'UserController@indexUsuario');
 // DELETE
 Route::delete('/api/user/destroyUsuario/{idUser}', 'UserController@destroyUsuario')->middleware(\App\Http\Middleware\ApiAuthMiddleware::class);
 Route::delete('/api/user/destroyPerfil/{idPerfil}', 'UserController@destroyPerfil')->middleware(\App\Http\Middleware\ApiAuthMiddleware::class);
+Route::delete('/api/user/imagen/{nameImag}', 'UserController@destroyImagen');
 
 //RUTAS AUTOMATICAS
 
@@ -78,3 +60,18 @@ Route::resource('/api/categoria', 'CategoriaBienesController');
 
 /*************RUTAS PARA CALEFONES********/
 Route::resource('/api/calefones', 'CalefonesController');
+Route::post('/api/calefones/uploadImagen', 'CalefonesController@uploadImagen');
+Route::get('/api/calefones/getImagen/{filename}', 'CalefonesController@getImagen');
+Route::delete('/api/calefones/destroyImagen/{filename}', 'CalefonesController@destroyImagen');
+
+/*************RUTAS PARA EMPRESA********/
+Route::resource('/api/empresa', 'EmpresaController');
+Route::post('/api/empresa/uploadImagen', 'EmpresaController@uploadImagen');
+Route::get('/api/empresa/getImagen/{filename}', 'EmpresaController@getImagen');
+Route::delete('/api/empresa/destroyImagen/{filename}', 'EmpresaController@destroyImagen');
+
+/*************RUTAS PARA PROPIEDAD********/
+Route::resource('/api/propiedad', 'PropiedadesController');
+
+
+/*************login para guardar el primer administrador********/

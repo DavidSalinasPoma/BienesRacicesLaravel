@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Empresa;
 use Exception;
 use App\Helpers\JwtAuth;
+use App\Imagen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -34,18 +35,17 @@ class EmpresaController extends Controller
             // 2.-VALIDAR DATOS
             $validate = Validator::make($paramsArray, [
                 // 'titulo' => 'required|unique:calefones',
-                'titulo_header' => 'required',
+                'titulo' => 'required',
                 'direccion' => 'required',
-                'correo_electronico' => 'required|numeric',
+                'correo_electronico' => 'required|email',
                 'facebook' => 'required',
                 'twitter' => 'required',
                 'youtube' => 'required',
-                'direccion' => 'required',
-                'whatsapp' => 'required|numeric',
-                'img_historia' => 'required|numeric',
-                'descripcion_historia' => 'required|numeric',
-                'mision' => 'required|numeric',
-                'vision' => 'required|numeric',
+                'whatsapp' => 'required',
+                'img_historia' => 'required',
+                'descripcion_historia' => 'required',
+                'mision' => 'required',
+                'vision' => 'required',
                 'latitud' => 'required|numeric',
                 'longitud' => 'required|numeric',
             ]);

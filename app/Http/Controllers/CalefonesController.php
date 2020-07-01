@@ -17,7 +17,7 @@ class CalefonesController extends Controller
     public function __construct()
     {
         // Utiliza la autenticacion en toda la clase excepto en los metodos de index y show.
-        $this->middleware('api.auth', ['except' => ['index', 'show']]);
+        $this->middleware('api.auth', ['except' => ['index', 'show', 'getImagen', 'destroyImagen']]);
     }
 
     // INDEX sirve para sacar todos los registro de calefones la base de datos
@@ -156,6 +156,9 @@ class CalefonesController extends Controller
                 unset($paramsArray['created_at']);
                 unset($paramsArray['usuarios_id']);
                 // 4.- actualizar el personal en la base de datos
+                // var_dump($paramsArray);
+                // echo $idCalefon;
+                // die();
                 try {
                     $calefones = Calefones::where('id', $idCalefon)->update($paramsArray);
                     $data = array(
